@@ -201,13 +201,45 @@ function translateNow(){
   if(!input || !out) return;
   const r = translateSentence(input.value);
   if(!r){ out.innerHTML = ""; return; }
-  if(r.exact){
+  const single = input.value.trim().split(/\s+/).length === 1 ? findWord(input.value) : null;
+  if(single){
+    const idx = DICT.indexOf(single);
+    out.innerHTML = `<div class="card" style="cursor:default"><span class="tag">معنی واژه • ${single.level} • ${single.typeFa}</span><h3 class="de">${esc(single.type === "noun" ? single.n : single.de)}</h3><p style="font-size:18px">${esc(single.fa)}</p><button class="btn" onclick="openDictWord(${idx})">باز کردن صفحه واژه و جمله‌هایش ←</button></div>`;
+    filterDictByTrans();
+  } else if(r.exact){
     out.innerHTML = `<div class="card" style="cursor:default"><span class="tag">ترجمه دقیق • سطح ${r.level}</span><p class="de-text">${esc(r.de)}</p><p>${esc(r.fa)}</p><small>این جمله از جمله‌های ساخته‌شده دیکشنری است.</small></div>`;
   } else if(!r.words.some(x => x.found)){
-    out.innerHTML = `<div class="note">واژه‌ای از دیکشنری در این جمله پیدا نشد. اول یک واژه از فهرست زیر را باز کن، یا جمله‌ای با همان واژه‌ها بنویس.</div>`;
+    const q = input.value.trim().toLowerCase();
+    const sug = DICT.filter(w => w.de.toLowerCase().includes(q) || w.fa.includes(input.value.trim())).slice(0, 5);
+    out.innerHTML = sug.length
+      ? `<div class="note">این واژه دقیقاً در دیکشنری نیست، ولی این موارد نزدیک به آن است — روی هر کدام بزن:</div>` + sug.map(w => `<div class="card" onclick="openDictWord(${DICT.indexOf(w)})"><h3 class="de">${esc(w.type === "noun" ? w.n : w.de)}</h3><p>${esc(w.fa)}</p></div>`).join("")
+      : `<div class="note">واژه‌ای از دیکشنری در این جمله پیدا نشد. واژه را از فهرست زیر پیدا کن، یا جمله‌ای با همان واژه‌ها بنویس.</div>`;
   } else {
     out.innerHTML = `<div class="card" style="cursor:default"><span class="tag">ترجمه واژه‌به‌واژه</span><p><small>${r.words.map(x => x.found ? `${esc(x.tok)} = ${esc(x.found.fa)}` : `${esc(x.tok)} = ؟`).join(" • ")}</small></p><p><small>⚠️ این فقط معنی تک‌تک واژه‌های شناخته‌شده است و جمله کامل را ترجمه نمی‌کند؛ برای ترجمه دقیق، از جمله‌های ساخته‌شده هر واژه استفاده کن.</small></p></div>`;
   }
+}
+function dictRowsHTML(q){
+  let list = DICT.filter(w => matchesLevel(w.level) && matchesSearch(w.de, w.fa, w.typeFa));
+  if(q){
+    const qq = q.toLowerCase();
+    list = list.filter(w => w.de.toLowerCase().includes(qq) || w.fa.includes(q));
+  }
+  return list.map(w => {
+    const idx = DICT.indexOf(w);
+    return `<div class="card" onclick="openDictWord(${idx})">
+      <span class="tag">${w.level}</span><span class="badge">${w.typeFa}</span>
+      <h3 class="de">${esc(w.type === "noun" ? w.n : w.de)}</h3>
+      <p style="margin:4px 0">${esc(w.fa)}</p>
+      <small>۴۰ جمله ساخته‌شده • ۱۰ جمله برای هر سطح A1 تا B2 • با تلفظ</small>
+    </div>`;
+  }).join("");
+}
+function filterDictByTrans(){
+  const inp = document.getElementById("transInput");
+  const list = document.getElementById("dictList");
+  if(!inp || !list) return;
+  const html = dictRowsHTML(inp.value.trim());
+  list.innerHTML = html || "<div class='note'>واژه‌ای با این جستجو پیدا نشد. واژه دیگری را امتحان کن.</div>";
 }
 function dictionaryHTML(){
   if(view?.type === "dict"){
@@ -233,26 +265,16 @@ function dictionaryHTML(){
     </div>`).join("")}
     <div class="note">جمله‌های هر سطح با ساختار گرامری همان سطح ساخته شده‌اند: A1 ساده، A2 با گذشته و ربط‌دهنده، B1 با جملات فرعی، B2 با شرطی و ساختارهای پیشرفته.</div>`;
   }
-  const rows = DICT.filter(w => matchesLevel(w.level) && matchesSearch(w.de, w.fa, w.typeFa))
-    .map((w, i) => {
-      const idx = DICT.indexOf(w);
-      return `<div class="card" onclick="openDictWord(${idx})">
-      <span class="tag">${w.level}</span><span class="badge">${w.typeFa}</span>
-      <h3 class="de">${esc(w.type === "noun" ? w.n : w.de)}</h3>
-      <p style="margin:4px 0">${esc(w.fa)}</p>
-      <small>۴۰ جمله ساخته‌شده • ۱۰ جمله برای هر سطح A1 تا B2 • با تلفظ</small>
-    </div>`;
-    }).join("");
   return `<h2>مترجم جمله</h2>
   <div class="card" style="cursor:default">
-    <p>یک جمله آلمانی بنویس. اگر جمله از جمله‌های ساخته‌شده دیکشنری باشد، ترجمه دقیقش را می‌گیری؛ وگرنه معنی واژه‌به‌واژه‌اش را نشان می‌دهم.</p>
-    <input id="transInput" type="text" placeholder="مثلاً: Ich lerne oft." style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--line);background:#0f172a;color:#fff;margin:8px 0">
+    <p>یک واژه یا جمله آلمانی بنویس. با هر حرفی که می‌نویسی، فهرست زیر هم زنده فیلتر می‌شود. اگر واژه در دیکشنری باشد، معنی‌اش را همین‌جا می‌بینی.</p>
+    <input id="transInput" type="text" oninput="filterDictByTrans()" placeholder="مثلاً: Handy یا Ich lerne oft." style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--line);background:#0f172a;color:#fff;margin:8px 0">
     <button class="btn" onclick="translateNow()">ترجمه کن</button>
     <div id="transOutput" style="margin-top:10px"></div>
   </div>
   <h2>دیکشنری — ${faNum(DICT.length)} واژه</h2>
-  <p>روی هر واژه بزن تا معنی، تلفظ و ۱۰ جمله‌اش را برای هر سطح ببینی. فیلتر سطح بالا، سطح خود واژه را فیلتر می‌کند.</p>
-  ${rows || "<div class='note'>واژه‌ای پیدا نشد.</div>"}`;
+  <p>روی هر واژه بزن تا معنی، تلفظ و ۱۰ جمله‌اش را برای هر سطح ببینی. فیلتر سطح بالا، سطح خود واژه را فیلتر می‌کند و جستجوی بالا هم همین فهرست را فیلتر می‌کند.</p>
+  <div id="dictList">${dictRowsHTML() || "<div class='note'>واژه‌ای پیدا نشد.</div>"}</div>`;
 }
 
 function render(){

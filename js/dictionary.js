@@ -290,3 +290,50 @@ function translateSentence(input){
   const approx = words.map(x => x.found ? x.found.fa : x.tok).join(" ");
   return {exact:false, word:null, level:null, de:clean, fa:approx, words};
 }
+
+/* واژه‌های اضافه‌شده بعد از بازخورد کاربر (از جمله Handy) — جمله‌هایشان
+   خودکار با همان موتور ساخته می‌شوند، پس هر واژه جدید ۴۰ جمله دارد. */
+DICT.push(
+  noun("Frau","die","Frauen","زن","A1"),
+  noun("Mann","der","Männer","مرد","A1"),
+  noun("Kind","das","Kinder","کودک","A1"),
+  noun("Mutter","die","Mütter","مادر","A1"),
+  noun("Vater","der","Väter","پدر","A1"),
+  noun("Handy","das","Handys","موبایل","A1"),
+  noun("Tee","der","Tees","چای","A1"),
+  noun("Kaffee","der","Kaffees","قهوه","A1"),
+  noun("Schule","die","Schulen","مدرسه","A2"),
+  noun("Wohnung","die","Wohnungen","آپارتمان","A2"),
+  noun("Straße","die","Straßen","خیابان","A2"),
+  noun("Tag","der","Tage","روز","A2"),
+  noun("Nacht","die","Nächte","شب","A2"),
+  noun("Woche","die","Wochen","هفته","A2"),
+  noun("Bahnhof","der","Bahnhöfe","ایستگاه قطار","B1"),
+  noun("Restaurant","das","Restaurants","رستوران","B1"),
+  noun("Hotel","das","Hotels","هتل","B1"),
+  noun("Monat","der","Monate","ماه","B1"),
+  noun("Jahr","das","Jahre","سال","B1"),
+  noun("Preis","der","Preise","قیمت","B1"),
+  verb("sprechen","spreche","spricht","sprechen","gesprochen","haben","صحبت کردن","صحبت می‌کنم","صحبت می‌کند","صحبت می‌کنیم","صحبت کنم","صحبت کردم","A1"),
+  verb("gehen","gehe","geht","gehen","gegangen","sein","رفتن","می‌روم","می‌رود","می‌رویم","بروم","رفتم","A1"),
+  verb("kommen","komme","kommt","kommen","gekommen","sein","آمدن","می‌آیم","می‌آید","می‌آییم","بیایم","آمدم","A1"),
+  verb("trinken","trinke","trinkt","trinken","getrunken","haben","نوشیدن","می‌نوشم","می‌نوشد","می‌نوشیم","بنوشم","نوشیدم","A1"),
+  verb("essen","esse","isst","essen","gegessen","haben","خوردن","می‌خورم","می‌خورد","می‌خوریم","بخورم","خوردم","A1"),
+  verb("verstehen","verstehe","versteht","verstehen","verstanden","haben","فهمیدن","می‌فهمم","می‌فهمد","می‌فهمیم","بفهمم","فهمیدم","A2"),
+  verb("sehen","sehe","sieht","sehen","gesehen","haben","دیدن","می‌بینم","می‌بیند","می‌بینیم","ببینم","دیدم","A2"),
+  verb("schlafen","schlafe","schläft","schlafen","geschlafen","haben","خوابیدن","می‌خوابم","می‌خوابد","می‌خوابیم","بخوابم","خوابیدم","A2"),
+  verb("helfen","helfe","hilft","helfen","geholfen","haben","کمک کردن","کمک می‌کنم","کمک می‌کند","کمک می‌کنیم","کمک کنم","کمک کردم","B1"),
+  verb("lieben","liebe","liebt","lieben","geliebt","haben","دوست داشتن","دوست دارم","دوست دارد","دوست داریم","دوست داشته باشم","دوست داشتم","B2"),
+  adj("groß","größer","بزرگ","بزرگ‌تر","A1"),
+  adj("klein","kleiner","کوچک","کوچک‌تر","A1"),
+  adj("alt","älter","قدیمی","قدیمی‌تر","A2"),
+  adj("jung","jünger","جوان","جوان‌تر","A2"),
+  adj("heiß","heißer","داغ","داغ‌تر","A2"),
+  adj("schnell","schneller","سریع","سریع‌تر","B1"),
+  adj("langsam","langsamer","آهسته","آهسته‌تر","B1"),
+  adj("kalt","kälter","سرد","سردتر","B1"),
+  adj("freundlich","freundlicher","مهربان","مهربان‌تر","B1"),
+  adj("teuer","teurer","گران","گران‌تر","B2"),
+  adj("billig","billiger","ارزان","ارزان‌تر","B2"),
+  adj("lustig","lustiger","خنده‌دار","خنده‌دارتر","B2")
+);
