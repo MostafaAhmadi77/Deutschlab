@@ -74,6 +74,11 @@ function homeHTML(){
     <h3>Menschen A1 — سلام و معرفی خود</h3>
     <small>۵ درس نمونه • واژه، گرامر و مکالمه • با تلفظ</small>
   </div>
+  <div class="card" onclick="setTab('dictionary')">
+    <span class="tag">جدید • دیکشنری</span>
+    <h3>🔍 دیکشنری و مترجم جمله</h3>
+    <small>${faNum(DICT.length)} واژه • هر واژه ۴۰ جمله ساخته‌شده (۱۰ جمله برای هر سطح A1 تا B2) • ترجمه جمله</small>
+  </div>
   <div class="note">📌 هر کتاب جلد و فهرست درس خودش را دارد. برای خواندن خود کتاب، در صفحه کتاب روی «انتخاب فایل PDF» بزن و نسخه قانونی خودت را باز کن؛ فایل رسمی کتاب به‌خاطر کپی‌رایت داخل اپ نیست.</div>`;
 }
 
@@ -187,12 +192,75 @@ function storiesHTML(){
   return `<h2>داستان‌های آلمانی</h2><p>هر داستان دقیقاً برای یک سطح نوشته شده؛ از A1 شروع کن.</p>${rows || "<div class='note'>داستانی برای این سطح پیدا نشد.</div>"}`;
 }
 
+let sentLevel = "A1";
+function setSentLevel(l){ sentLevel = l; render(); }
+function openDictWord(idx){ view = {type:"dict", idx}; render(); }
+function translateNow(){
+  const input = document.getElementById("transInput");
+  const out = document.getElementById("transOutput");
+  if(!input || !out) return;
+  const r = translateSentence(input.value);
+  if(!r){ out.innerHTML = ""; return; }
+  if(r.exact){
+    out.innerHTML = `<div class="card" style="cursor:default"><span class="tag">ترجمه دقیق • سطح ${r.level}</span><p class="de-text">${esc(r.de)}</p><p>${esc(r.fa)}</p><small>این جمله از جمله‌های ساخته‌شده دیکشنری است.</small></div>`;
+  } else if(!r.words.some(x => x.found)){
+    out.innerHTML = `<div class="note">واژه‌ای از دیکشنری در این جمله پیدا نشد. اول یک واژه از فهرست زیر را باز کن، یا جمله‌ای با همان واژه‌ها بنویس.</div>`;
+  } else {
+    out.innerHTML = `<div class="card" style="cursor:default"><span class="tag">ترجمه واژه‌به‌واژه</span><p><small>${r.words.map(x => x.found ? `${esc(x.tok)} = ${esc(x.found.fa)}` : `${esc(x.tok)} = ؟`).join(" • ")}</small></p><p><small>⚠️ این فقط معنی تک‌تک واژه‌های شناخته‌شده است و جمله کامل را ترجمه نمی‌کند؛ برای ترجمه دقیق، از جمله‌های ساخته‌شده هر واژه استفاده کن.</small></p></div>`;
+  }
+}
+function dictionaryHTML(){
+  if(view?.type === "dict"){
+    const w = DICT[view.idx];
+    const sents = buildSentences(w, sentLevel);
+    const typeInfo = w.type === "noun" ? `${w.art} ${w.de} • جمع: die ${w.plural}`
+      : w.type === "verb" ? `${w.de} • حال: ich ${w.vIch}، er ${w.vEr} • گذشته کامل: ${w.aux} ${w.pp}`
+      : `${w.de} • تفضیلی: ${w.comp}`;
+    return `<span class="back" onclick="view=null;render()">← برگشت به دیکشنری</span>
+    <div class="card" style="cursor:default">
+      <span class="tag">${w.level} • ${w.typeFa}</span>
+      <h3 class="de" style="font-size:24px">${esc(w.type === "noun" ? w.n : w.de)}</h3>
+      <p style="font-size:18px">${esc(w.fa)}</p>
+      <small>${esc(typeInfo)}</small>
+      <div class="btnrow"><button class="btn secondary" onclick="speak('${esc(w.de)}')">🔊 تلفظ واژه</button></div>
+    </div>
+    <h2>جمله‌های ساخته‌شده — سطح ${sentLevel} <span style="color:#94a3b8;font-size:13px">(${faNum(10)} جمله)</span></h2>
+    <div class="levels" style="padding:0 0 10px">${["A1","A2","B1","B2"].map(l => `<button class="chip ${l===sentLevel?"active":""}" onclick="setSentLevel('${l}')">${l}</button>`).join("")}</div>
+    ${sents.map((s,i) => `<div class="card" style="cursor:default">
+      <span class="badge">جمله ${faNum(i+1)}</span>
+      <p class="de-text">${esc(s.de)}</p><p>${esc(s.fa)}</p>
+      <button class="btn secondary" onclick="speak('${esc(s.de)}')">🔊 شنیدن جمله</button>
+    </div>`).join("")}
+    <div class="note">جمله‌های هر سطح با ساختار گرامری همان سطح ساخته شده‌اند: A1 ساده، A2 با گذشته و ربط‌دهنده، B1 با جملات فرعی، B2 با شرطی و ساختارهای پیشرفته.</div>`;
+  }
+  const rows = DICT.filter(w => matchesLevel(w.level) && matchesSearch(w.de, w.fa, w.typeFa))
+    .map((w, i) => {
+      const idx = DICT.indexOf(w);
+      return `<div class="card" onclick="openDictWord(${idx})">
+      <span class="tag">${w.level}</span><span class="badge">${w.typeFa}</span>
+      <h3 class="de">${esc(w.type === "noun" ? w.n : w.de)}</h3>
+      <p style="margin:4px 0">${esc(w.fa)}</p>
+      <small>۴۰ جمله ساخته‌شده • ۱۰ جمله برای هر سطح A1 تا B2 • با تلفظ</small>
+    </div>`;
+    }).join("");
+  return `<h2>مترجم جمله</h2>
+  <div class="card" style="cursor:default">
+    <p>یک جمله آلمانی بنویس. اگر جمله از جمله‌های ساخته‌شده دیکشنری باشد، ترجمه دقیقش را می‌گیری؛ وگرنه معنی واژه‌به‌واژه‌اش را نشان می‌دهم.</p>
+    <input id="transInput" type="text" placeholder="مثلاً: Ich lerne oft." style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--line);background:#0f172a;color:#fff;margin:8px 0">
+    <button class="btn" onclick="translateNow()">ترجمه کن</button>
+    <div id="transOutput" style="margin-top:10px"></div>
+  </div>
+  <h2>دیکشنری — ${faNum(DICT.length)} واژه</h2>
+  <p>روی هر واژه بزن تا معنی، تلفظ و ۱۰ جمله‌اش را برای هر سطح ببینی. فیلتر سطح بالا، سطح خود واژه را فیلتر می‌کند.</p>
+  ${rows || "<div class='note'>واژه‌ای پیدا نشد.</div>"}`;
+}
+
 function render(){
   renderChips();
   $("#doneCount").textContent = faNum(done.size);
   document.querySelectorAll(".bottomnav button").forEach(b =>
     b.classList.toggle("active", b.dataset.tab === tab));
-  $("#app").innerHTML = tab === "home" ? homeHTML() : tab === "books" ? booksHTML() : tab === "podcasts" ? podcastsHTML() : storiesHTML();
+  $("#app").innerHTML = tab === "home" ? homeHTML() : tab === "books" ? booksHTML() : tab === "podcasts" ? podcastsHTML() : tab === "dictionary" ? dictionaryHTML() : storiesHTML();
   window.scrollTo({top:0});
 }
 document.querySelectorAll(".bottomnav button").forEach(b =>
