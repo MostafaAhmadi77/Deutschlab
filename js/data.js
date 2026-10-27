@@ -7,7 +7,7 @@ const LEVELS = ["همه","A1","A2","B1","B2","C1"];
 
 const BOOKS = [
 {
-  id:"menschen", name:"Menschen", fa:"منشن", publisher:"Hueber",
+  id:"menschen", name:"Menschen", fa:"منشن", publisher:"Hueber", color:"#2563eb",
   desc:"محبوب‌ترین مسیر کلاس‌های آلمانی؛ مکالمه‌محور و قدم‌به‌قدم.",
   levels:[
     {level:"A1", title:"Menschen A1", lessons:[
@@ -34,10 +34,10 @@ const BOOKS = [
   ]
 },
 {
-  id:"starten", name:"Starten wir!", fa:"اشتارتن ویر", publisher:"Hueber",
+  id:"starten", name:"Starten wir!", fa:"اشتارتن ویر", publisher:"Hueber", color:"#ea580c",
   desc:"سری جدید و تصویری برای بزرگسالان؛ تمرکز روی مکالمه روزمره.",
   levels:[
-    {level:"A1", title:"Starten wir! A1", lessons:[
+    {level:"A1", title:"Starten wir! A1", isbn:"978-3-19-716000-9", lessons:[
       {de:"Hallo, ich bin …", fa:"سلام، من … هستم", grammar:"معرفی، ملیت و زبان‌ها"},
       {de:"Mein Tag", fa:"روز من", grammar:"افعال جداشدنی و ساعت"},
       {de:"Einkaufen", fa:"خرید کردن", grammar:"اعداد، قیمت و حالت Akkusativ"},
@@ -61,10 +61,10 @@ const BOOKS = [
   ]
 },
 {
-  id:"momente", name:"Momente", fa:"مومنت", publisher:"Hueber",
+  id:"momente", name:"Momente", fa:"مومنت", publisher:"Hueber", color:"#0d9488",
   desc:"مسیر تصویری و مدرن با داستان‌های کوتاه و تمرین‌های تعاملی.",
   levels:[
-    {level:"A1", title:"Momente A1", lessons:[
+    {level:"A1", title:"Momente A1", isbn:"978-3-19-501791-6", lessons:[
       {de:"Ankommen", fa:"رسیدن و شروع", grammar:"سلام، خداحافظی و اعداد ۱ تا ۱۰۰"},
       {de:"Menschen kennenlernen", fa:"آشنایی با آدم‌ها", grammar:"پرسش با W-Fragen"},
       {de:"Zu Hause", fa:"در خانه", grammar:"وسایل خانه و حرف تعریف"},

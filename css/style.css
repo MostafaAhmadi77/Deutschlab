@@ -45,4 +45,14 @@ p{line-height:1.9;color:#cbd5e1}
 .bottomnav button span{font-size:11px}
 .bottomnav button.active{color:var(--orange)}
 input,button{font-family:inherit}
+.cover-row{display:flex;gap:14px;align-items:flex-start}
+.book-cover{flex:0 0 86px;width:86px;height:124px;border-radius:10px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:10px 9px;box-shadow:0 6px 16px rgba(0,0,0,.4);text-align:left}
+.book-cover.large{flex:0 0 130px;width:130px;height:188px;padding:14px 12px}
+.book-cover .c-name{font-weight:800;font-size:15px;line-height:1.3;direction:ltr}
+.book-cover.large .c-name{font-size:21px}
+.book-cover .c-level{background:rgba(255,255,255,.22);border-radius:99px;padding:3px 8px;font-size:11px;align-self:flex-start}
+.book-cover .c-pub{font-size:10px;opacity:.85}
+.book-cover .c-isbn{font-size:9px;opacity:.8;direction:ltr}
+.pdfbox{margin-top:12px}
+.pdfbox embed,.pdfbox iframe{width:100%;height:560px;border:0;border-radius:14px;background:#fff}
 @media(min-width:521px){.phone{border-left:1px solid #1e293b;border-right:1px solid #1e293b}}

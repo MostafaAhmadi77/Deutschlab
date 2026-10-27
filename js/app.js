@@ -7,6 +7,21 @@ const save = () => localStorage.setItem("deutschlab-done", JSON.stringify([...do
 const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
 const matchesLevel = (l) => level === "همه" || l === level;
 const matchesSearch = (...texts) => !search || texts.join(" ").toLowerCase().includes(search.toLowerCase());
+function coverHTML(b, lv, large){
+  return `<div class="book-cover ${large?"large":""}" style="background:linear-gradient(160deg, ${b.color}, #0f172a)">
+    <span class="c-name">${esc(b.name)}</span>
+    <span><span class="c-level">${lv.level}</span><br><span class="c-pub">Hueber • ${esc(b.fa)}</span>${lv.isbn?`<br><span class="c-isbn">ISBN ${esc(lv.isbn)}</span>`:""}</span>
+  </div>`;
+}
+let pdfUrl = null;
+function loadPdf(ev){
+  const f = ev.target.files && ev.target.files[0];
+  if(!f) return;
+  if(pdfUrl) URL.revokeObjectURL(pdfUrl);
+  pdfUrl = URL.createObjectURL(f);
+  const area = document.getElementById("pdfArea");
+  if(area) area.innerHTML = `<p>📄 ${esc(f.name)}</p><div class="pdfbox"><embed src="${pdfUrl}" type="application/pdf"></div><p><small>این فایل فقط روی همین دستگاه و در همین جلسه باز می‌شود و جایی آپلود نمی‌شود.</small></p>`;
+}
 
 function renderChips(){
   $("#levelChips").innerHTML = LEVELS.map(l =>
@@ -59,7 +74,7 @@ function homeHTML(){
     <h3>Menschen A1 — سلام و معرفی خود</h3>
     <small>۵ درس نمونه • واژه، گرامر و مکالمه • با تلفظ</small>
   </div>
-  <div class="note">📌 در نسخه اول، کتاب‌ها به‌صورت مسیر درسی و درس نمونه هستند؛ متن و صدای رسمی کتاب‌ها به‌خاطر کپی‌رایت داخل اپ نیست و در مرحله بعد با مجوز ناشر اضافه می‌شود.</div>`;
+  <div class="note">📌 هر کتاب جلد و فهرست درس خودش را دارد. برای خواندن خود کتاب، در صفحه کتاب روی «انتخاب فایل PDF» بزن و نسخه قانونی خودت را باز کن؛ فایل رسمی کتاب به‌خاطر کپی‌رایت داخل اپ نیست.</div>`;
 }
 
 function booksHTML(){
@@ -67,8 +82,22 @@ function booksHTML(){
     const b = BOOKS.find(x => x.id === view.book);
     const lv = b.levels.find(x => x.level === view.level);
     return `<span class="back" onclick="view=null;render()">← برگشت به کتاب‌ها</span>
-    <h2>${b.name} ${lv.level} <span style="color:#94a3b8;font-size:14px">• ${b.fa} • ${b.publisher}</span></h2>
-    <p>${b.desc}</p>
+    <div class="cover-row">
+      ${coverHTML(b, lv, true)}
+      <div>
+        <h2 style="margin-top:0">${b.name} ${lv.level}</h2>
+        <p style="margin:0">${b.fa} • ${b.publisher}${lv.isbn?` • ISBN ${lv.isbn}`:""}</p>
+        <p>${b.desc}</p>
+      </div>
+    </div>
+    <div class="card" style="cursor:default">
+      <h3>📖 خواندن خود کتاب</h3>
+      <p>فایل PDF کتاب را از روی گوشی‌ات انتخاب کن تا همین‌جا باز شود. این برای کتابی است که خودت به‌صورت قانونی خریده‌ای؛ فایل جایی آپلود یا ذخیره نمی‌شود.</p>
+      <input type="file" accept="application/pdf" onchange="loadPdf(event)">
+      <div id="pdfArea"></div>
+      <div class="note" style="margin-top:10px">نسخه کامل این کتاب‌ها محصول Hueber است و به‌خاطر کپی‌رایت داخل اپ و ریپو قرار نگرفته است. نسخه چاپی یا دیجیتال رسمی را با عنوان و ISBN بالا از فروشگاه Hueber تهیه کن، بعد PDF شخصی‌ات را همین‌جا باز کن.</div>
+    </div>
+    <h2>فهرست درس‌های نمونه</h2>
     ${lv.lessons.map((ls,i) => {
       const id = `${b.id}-${lv.level}-${i}`;
       const isDone = done.has(id);
@@ -91,9 +120,12 @@ function booksHTML(){
     if(!matchesLevel(lv.level)) return;
     if(!matchesSearch(b.name, b.fa, lv.title)) return;
     rows.push(`<div class="card" onclick="openBook('${b.id}','${lv.level}')">
+      <div class="cover-row">${coverHTML(b, lv, false)}
+      <div>
       <span class="tag">${lv.level}</span><span class="badge">${b.publisher}</span>
       <h3>${b.name} ${lv.level} <span style="font-weight:400;color:#94a3b8">• ${b.fa}</span></h3>
       <small>${faNum(lv.lessons.length)} درس نمونه • ${b.desc}</small>
+      </div></div>
     </div>`);
   }));
   return `<h2>کتاب‌های آموزشی</h2><p>سطح را از بالا انتخاب کن، یا روی کتاب بزن تا درس‌هایش باز شود.</p>${rows.length ? rows.join("") : "<div class='note'>برای این سطح کتابی پیدا نشد. سطح دیگری را امتحان کن.</div>"}`;
