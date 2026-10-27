@@ -74,6 +74,11 @@ function homeHTML(){
     <h3>Menschen A1 — سلام و معرفی خود</h3>
     <small>۵ درس نمونه • واژه، گرامر و مکالمه • با تلفظ</small>
   </div>
+  <div class="card" onclick="setTab('grammar')">
+    <span class="tag">جدید • گرامر</span>
+    <h3>📐 گرامر سطح‌بندی‌شده A1 تا B2</h3>
+    <small>۲۴ مبحث جداگانه • آموزش مرحله‌ای + مثال + تمرین + آزمون هر مبحث</small>
+  </div>
   <div class="card" onclick="setTab('dictionary')">
     <span class="tag">جدید • دیکشنری</span>
     <h3>🔍 دیکشنری و مترجم جمله</h3>
@@ -277,12 +282,104 @@ function dictionaryHTML(){
   <div id="dictList">${dictRowsHTML() || "<div class='note'>واژه‌ای پیدا نشد.</div>"}</div>`;
 }
 
+let gramLevel = "A1";
+let quizState = null;
+function setGramLevel(l){ gramLevel = l; view = null; render(); }
+function openGrammar(id){ view = {type:"grammar", id}; render(); }
+function startQuiz(id){
+  quizState = {topicId:id, qi:0, score:0, answered:false, selected:-1, finished:false};
+  view = {type:"quiz", id}; render();
+}
+function answerQuiz(oi){
+  if(!quizState || quizState.answered) return;
+  const t = GRAMMAR.find(x => x.id === quizState.topicId);
+  quizState.selected = oi; quizState.answered = true;
+  if(oi === t.quiz[quizState.qi].answer) quizState.score++;
+  render();
+}
+function nextQuiz(){
+  const t = GRAMMAR.find(x => x.id === quizState.topicId);
+  quizState.qi++; quizState.answered = false; quizState.selected = -1;
+  if(quizState.qi >= t.quiz.length){
+    quizState.finished = true;
+    done.add("quiz-" + t.id); save();
+  }
+  render();
+}
+function answerPractice(topicId, pi, oi, el){
+  const t = GRAMMAR.find(x => x.id === topicId);
+  const p = t.practice[pi];
+  const box = el.closest(".practice");
+  if(!box || box.dataset.answered) return;
+  box.dataset.answered = "1";
+  const btns = box.querySelectorAll("button");
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if(i === p.answer) b.classList.add("opt-correct");
+    if(i === oi && oi !== p.answer) b.classList.add("opt-wrong");
+  });
+  const fb = box.querySelector(".prac-feedback");
+  if(fb) fb.innerHTML = oi === p.answer
+    ? `<div class="note">✓ درست است! ${esc(p.why)}</div>`
+    : `<div class="note">✗ جواب درست: ${esc(p.options[p.answer])} — ${esc(p.why)}</div>`;
+}
+function grammarHTML(){
+  if(view?.type === "quiz" && quizState){
+    const t = GRAMMAR.find(x => x.id === quizState.topicId);
+    if(quizState.finished){
+      const pct = Math.round(quizState.score / t.quiz.length * 100);
+      return `<span class="back" onclick="view=null;render()">← برگشت به گرامر</span>
+      <div class="hero"><h1>نتیجه آزمون: ${faNum(quizState.score)} از ${faNum(t.quiz.length)}</h1>
+      <p>${pct >= 80 ? "عالی! این مبحث را خوب یاد گرفته‌ای." : pct >= 60 ? "خوب است! یک بار دیگر درس را مرور کن و آزمون را تکرار کن." : "هنوز نیاز به مرور داری؛ درس را دوباره بخوان و دوباره آزمون بده."}</p>
+      <div class="progress"><i style="width:${pct}%"></i></div></div>
+      <div class="btnrow">
+        <button class="btn" onclick="startQuiz('${t.id}')">تکرار آزمون</button>
+        <button class="btn secondary" onclick="openGrammar('${t.id}')">برگشت به درس</button>
+      </div>
+      <div class="note">این آزمون تمرین به سبک آزمون‌های گوته/ÖSD است؛ سؤال‌ها اصیل و مرتبط با همین مبحث‌اند، نه سؤال‌های واقعی و منتشرنشده آن آزمون‌ها.</div>`;
+    }
+    const q = t.quiz[quizState.qi];
+    return `<span class="back" onclick="view=null;render()">← برگشت به گرامر</span>
+    <h2>آزمون: ${esc(t.fa)}</h2>
+    <p>سؤال ${faNum(quizState.qi + 1)} از ${faNum(t.quiz.length)} • امتیاز تا اینجا: ${faNum(quizState.score)}</p>
+    <div class="card" style="cursor:default">
+      <p class="de-text">${esc(q.q)}</p>
+      <div class="btnrow">${q.options.map((o, i) => `<button class="btn secondary ${quizState.answered && i === q.answer ? "opt-correct" : ""} ${quizState.answered && i === quizState.selected && i !== q.answer ? "opt-wrong" : ""}" ${quizState.answered ? "disabled" : ""} onclick="answerQuiz(${i})">${esc(o)}</button>`).join("")}</div>
+      ${quizState.answered ? `<div class="note" style="margin-top:10px">${quizState.selected === q.answer ? "✓ درست است!" : "✗ جواب درست: " + esc(q.options[q.answer])} — ${esc(q.why)}</div><div class="btnrow"><button class="btn" onclick="nextQuiz()">${quizState.qi + 1 >= t.quiz.length ? "مشاهده نتیجه" : "سؤال بعد ←"}</button></div>` : ""}
+    </div>`;
+  }
+  if(view?.type === "grammar"){
+    const t = GRAMMAR.find(x => x.id === view.id);
+    return `<span class="back" onclick="view=null;render()">← برگشت به گرامر</span>
+    <span class="tag">${t.level} • ${esc(t.book)}</span>
+    <h2>${esc(t.de)}</h2><p style="font-size:18px">${esc(t.fa)}</p>
+    <h2>آموزش مرحله‌ای</h2>
+    ${t.steps.map((s, i) => `<div class="card" style="cursor:default"><span class="badge">قدم ${faNum(i + 1)}</span><h3>${esc(s.t)}</h3><p>${esc(s.x)}</p></div>`).join("")}
+    <h2>مثال‌های مرتبط</h2>
+    ${t.examples.map(ex => `<div class="card" style="cursor:default"><p class="de-text">${esc(ex.de)}</p><p>${esc(ex.fa)}</p><button class="btn secondary" onclick="speak('${esc(ex.de)}')">🔊 شنیدن مثال</button></div>`).join("")}
+    <h2>تمرین سریع (قبل از آزمون)</h2>
+    ${t.practice.map((p, pi) => `<div class="card practice" style="cursor:default"><p class="de-text">${esc(p.q)}</p><div class="btnrow">${p.options.map((o, oi) => `<button class="btn secondary" onclick="answerPractice('${t.id}', ${pi}, ${oi}, this)">${esc(o)}</button>`).join("")}</div><div class="prac-feedback" style="margin-top:8px"></div></div>`).join("")}
+    <button class="btn" style="width:100%;padding:14px;font-size:16px" onclick="startQuiz('${t.id}')">📝 آزمون این مبحث</button>
+    <div class="note" style="margin-top:10px">${faNum(t.quiz.length)} سؤال مرتبط با همین مبحث، به سبک آزمون‌های گوته/ÖSD.</div>`;
+  }
+  const rows = GRAMMAR.filter(t => t.level === gramLevel)
+    .map((t, i) => `<div class="card" onclick="openGrammar('${t.id}')">
+      <span class="tag">${t.level} • مبحث ${faNum(i + 1)}</span>
+      <h3 class="de">${esc(t.de)}</h3><p style="margin:4px 0">${esc(t.fa)}</p>
+      <small>${esc(t.book)} • ${faNum(t.steps.length)} قدم آموزشی • ${faNum(t.examples.length)} مثال • ${faNum(t.practice.length)} تمرین • آزمون ${faNum(t.quiz.length)} سؤالی ${done.has("quiz-" + t.id) ? "• ✓ آزمون داده شده" : ""}</small>
+    </div>`).join("");
+  return `<h2>گرامر آلمانی</h2>
+  <p>سطح را انتخاب کن؛ هر سطح مباحثش جداگانه و مرحله‌به‌مرحله است و ترتیبشان بر اساس کتاب‌های Menschen و Starten wir! و Momente است.</p>
+  <div class="levels" style="padding:0 0 10px">${["A1","A2","B1","B2"].map(l => `<button class="chip ${l===gramLevel?"active":""}" onclick="setGramLevel('${l}')">${l}</button>`).join("")}</div>
+  ${rows}`;
+}
+
 function render(){
   renderChips();
   $("#doneCount").textContent = faNum(done.size);
   document.querySelectorAll(".bottomnav button").forEach(b =>
     b.classList.toggle("active", b.dataset.tab === tab));
-  $("#app").innerHTML = tab === "home" ? homeHTML() : tab === "books" ? booksHTML() : tab === "podcasts" ? podcastsHTML() : tab === "dictionary" ? dictionaryHTML() : storiesHTML();
+  $("#app").innerHTML = tab === "home" ? homeHTML() : tab === "books" ? booksHTML() : tab === "podcasts" ? podcastsHTML() : tab === "dictionary" ? dictionaryHTML() : tab === "grammar" ? grammarHTML() : storiesHTML();
   window.scrollTo({top:0});
 }
 document.querySelectorAll(".bottomnav button").forEach(b =>

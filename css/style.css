@@ -40,9 +40,11 @@ p{line-height:1.9;color:#cbd5e1}
 .word b{direction:ltr}
 .back{color:#93c5fd;cursor:pointer;margin-bottom:10px;display:inline-block}
 .note{background:#1e293b;border:1px dashed #475569;border-radius:14px;padding:12px;color:#cbd5e1;font-size:13px;line-height:1.9}
-.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#0f172a;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:10}
+.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#0f172a;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:10}
 .bottomnav button{background:none;border:0;color:#94a3b8;font-family:inherit;font-size:20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
-.bottomnav button span{font-size:11px}
+.bottomnav button span{font-size:10px}
+.opt-correct{background:var(--green)!important;color:#fff!important;border-color:var(--green)!important}
+.opt-wrong{background:#dc2626!important;color:#fff!important;border-color:#dc2626!important}
 .bottomnav button.active{color:var(--orange)}
 input,button{font-family:inherit}
 .cover-row{display:flex;gap:14px;align-items:flex-start}
